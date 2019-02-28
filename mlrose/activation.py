@@ -95,9 +95,7 @@ def softmax(x):
     fx: array
         Value of activation function at x
     """
-    fx = np.exp(x)/np.reshape(np.sum(np.exp(x), axis=1), [len(x), 1])
-
-    return fx
+    return np.exp(x)/np.sum(np.exp(x), axis=0)
 
 
 def tanh(x, deriv=False):
