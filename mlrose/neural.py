@@ -483,6 +483,8 @@ class NeuralNetwork:
         self.node_list = []
         self.fitted_weights = []
         self.loss = np.inf
+        self.eval_loss = []
+        self.current_best_loss = []
         self.output_activation = None
         self.predicted_probs = []
 
@@ -540,7 +542,7 @@ class NeuralNetwork:
             if init_weights is None:
                 init_weights = np.random.uniform(-1, 1, num_nodes)
 
-            fitted_weights, loss = random_hill_climb(
+            fitted_weights, loss, eval_loss, current_best_loss = random_hill_climb(
                 problem,
                 max_attempts=self.max_attempts, max_iters=self.max_iters,
                 restarts=0, init_state=init_weights)
@@ -548,13 +550,13 @@ class NeuralNetwork:
         elif self.algorithm == 'simulated_annealing':
             if init_weights is None:
                 init_weights = np.random.uniform(-1, 1, num_nodes)
-            fitted_weights, loss = simulated_annealing(
+            fitted_weights, loss, eval_loss, current_best_loss = simulated_annealing(
                 problem,
                 schedule=self.schedule, max_attempts=self.max_attempts,
                 max_iters=self.max_iters, init_state=init_weights)
 
         elif self.algorithm == 'genetic_alg':
-            fitted_weights, loss = genetic_alg(
+            fitted_weights, loss, eval_loss, current_best_loss = genetic_alg(
                 problem,
                 pop_size=self.pop_size, mutation_prob=self.mutation_prob,
                 max_attempts=self.max_attempts, max_iters=self.max_iters)
@@ -571,6 +573,8 @@ class NeuralNetwork:
         self.node_list = node_list
         self.fitted_weights = fitted_weights
         self.loss = loss
+        self.eval_loss = eval_loss
+        self.current_best_loss = current_best_loss
         self.output_activation = fitness.get_output_activation()
 
     def predict(self, X):
