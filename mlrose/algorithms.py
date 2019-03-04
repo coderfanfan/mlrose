@@ -1,6 +1,9 @@
 """ Functions to implement the randomized optimization and search algorithms.
 """
 
+""" Functions to implement the randomized optimization and search algorithms.
+"""
+
 # Author: Genevieve Hayes
 # License: BSD 3 clause
 
@@ -135,6 +138,9 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
 
     best_fitness = -1*np.inf
     best_state = None
+    eval_loss = []
+    current_best_loss = []
+  
 
     for _ in range(restarts + 1):
         # Initialize optimization problem and attempts counter
@@ -152,6 +158,8 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
             # Find random neighbor and evaluate fitness
             next_state = problem.random_neighbor()
             next_fitness = problem.eval_fitness(next_state)
+            eval_loss.append(problem.get_maximize()*next_fitness)
+ 
 
             # If best neighbor is an improvement,
             # move to that state and reset attempts counter
@@ -161,14 +169,18 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
 
             else:
                 attempts += 1
+          
+            #current_best_loss.append(problem.get_maximize()*problem.get_fitness())
 
-        # Update best state and best fitness
-        if problem.get_fitness() > best_fitness:
-            best_fitness = problem.get_fitness()
-            best_state = problem.get_state()
+            # Update best state and best fitness
+            if problem.get_fitness() > best_fitness:
+                best_fitness = problem.get_fitness()
+                best_state = problem.get_state()
+            
+            current_best_loss.append(problem.get_maximize()*best_fitness)
 
     best_fitness = problem.get_maximize()*best_fitness
-    return best_state, best_fitness
+    return best_state, best_fitness, eval_loss, current_best_loss
 
 
 def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
@@ -223,6 +235,8 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
 
     attempts = 0
     iters = 0
+    eval_loss = []
+    current_best_loss = []
 
     while (attempts < max_attempts) and (iters < max_iters):
         temp = schedule.evaluate(iters)
@@ -235,6 +249,7 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
             # Find random neighbor and evaluate fitness
             next_state = problem.random_neighbor()
             next_fitness = problem.eval_fitness(next_state)
+            eval_loss.append(problem.get_maximize()*next_fitness)
 
             # Calculate delta E and change prob
             delta_e = next_fitness - problem.get_fitness()
@@ -248,11 +263,13 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
 
             else:
                 attempts += 1
+            
+            current_best_loss.append(problem.get_maximize()*problem.get_fitness())
 
     best_fitness = problem.get_maximize()*problem.get_fitness()
     best_state = problem.get_state()
 
-    return best_state, best_fitness
+    return best_state, best_fitness, eval_loss, current_best_loss
 
 
 def genetic_alg(problem, pop_size=200, mutation_prob=0.1, max_attempts=10,
@@ -312,6 +329,8 @@ def genetic_alg(problem, pop_size=200, mutation_prob=0.1, max_attempts=10,
     problem.random_pop(pop_size)
     attempts = 0
     iters = 0
+    eval_loss = []
+    current_best_loss = []
 
     while (attempts < max_attempts) and (iters < max_iters):
         iters += 1
@@ -338,6 +357,8 @@ def genetic_alg(problem, pop_size=200, mutation_prob=0.1, max_attempts=10,
 
         next_state = problem.best_child()
         next_fitness = problem.eval_fitness(next_state)
+        eval_loss.append(problem.get_maximize()*next_fitness)
+        
 
         # If best child is an improvement,
         # move to that state and reset attempts counter
@@ -347,11 +368,14 @@ def genetic_alg(problem, pop_size=200, mutation_prob=0.1, max_attempts=10,
 
         else:
             attempts += 1
+        
+        current_best_loss.append(problem.get_maximize()*problem.get_fitness())
+        
 
     best_fitness = problem.get_maximize()*problem.get_fitness()
     best_state = problem.get_state()
 
-    return best_state, best_fitness
+    return best_state, best_fitness, eval_loss, current_best_loss
 
 
 def mimic(problem, pop_size=200, keep_pct=0.2, max_attempts=10,
@@ -417,6 +441,8 @@ def mimic(problem, pop_size=200, keep_pct=0.2, max_attempts=10,
     problem.random_pop(pop_size)
     attempts = 0
     iters = 0
+    eval_loss = []
+    current_best_loss = []
 
     while (attempts < max_attempts) and (iters < max_iters):
         iters += 1
@@ -434,17 +460,22 @@ def mimic(problem, pop_size=200, keep_pct=0.2, max_attempts=10,
         next_state = problem.best_child()
 
         next_fitness = problem.eval_fitness(next_state)
+        eval_loss.append(problem.get_maximize()*next_fitness)
 
         # If best child is an improvement,
         # move to that state and reset attempts counter
         if next_fitness > problem.get_fitness():
+            #print("nest fitness {}".format(next_fitness))
+            #print("problem fitness {}".format(problem.get_fitness()))                  
             problem.set_state(next_state)
             attempts = 0
 
         else:
             attempts += 1
+        
+        current_best_loss.append(problem.get_maximize()*problem.get_fitness())
 
     best_fitness = problem.get_maximize()*problem.get_fitness()
     best_state = problem.get_state().astype(int)
 
-    return best_state, best_fitness
+    return best_state, best_fitness, eval_loss, current_best_loss
